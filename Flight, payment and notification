@@ -1,0 +1,227 @@
+/*
+This code will allow customers to brose available flights. Once a flight is selected, the system will prompt them to enter 
+their personal information and a credit card. Once they hit submit, a pop-up message will appear providing them with a summary
+of their flight details and their total cost. 
+*/
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.io.BufferedWriter; //this will allow us to save the booked details in a text file called booked_flights.txt
+import java.io.FileWriter;
+import java.io.IOException;
+
+class Flight {
+    private String destination;
+    private String departureTime;
+    private String departureDate;
+    private double price;
+    private String airportLocation;
+    private String planeNumber;
+
+    public Flight(String destination, String departureTime, String departureDate, double price, String airportLocation, String planeNumber) {
+        this.destination = destination;
+        this.departureTime = departureTime;
+        this.departureDate = departureDate;
+        this.price = price;
+        this.airportLocation = airportLocation;
+        this.planeNumber = planeNumber;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    @Override
+    public String toString() {
+        return "Destination: " + destination + "\n"
+                + "Departure time: " + departureTime + "\n"
+                + "Departure date: " + departureDate + "\n"
+                + "Price: $" + price + "\n"
+                + "Airport location: " + airportLocation + "\n"
+                + "Plane number: " + planeNumber;
+    }
+}
+
+class Passenger {
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String email;
+    private String seat;
+    private Flight flight;
+
+    public Passenger(String firstName, String lastName, String phoneNumber, String email, String seat, Flight flight) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.seat = seat;
+        this.flight = flight;
+    }
+
+    @Override
+    public String toString() {
+        return "Passenger Information:\n"
+            + "Name: " + firstName + " " + lastName + "\n"
+            + "Phone Number: " + phoneNumber + "\n"
+            + "Email: " + email + "\n"
+            + "Seat Type: " + seat + "\n"
+            + "Flight Information: \n" + flight + "\n"
+            + "Total Paid: $" + flight.getPrice();
+    }
+}
+
+class BookedFlight {
+    private Flight flight;
+    private Passenger passenger;
+
+    public BookedFlight(Flight flight, Passenger passenger) {
+        this.flight = flight;
+        this.passenger = passenger;
+    }
+
+    @Override
+    public String toString() {
+        return "Booked Flight Information:\n"
+            + "Flight:\n" + flight + "\n"
+            + "Passenger:\n" + passenger;
+    }
+}
+
+class DetailsFrame extends JFrame {
+    private static final long serialVersionUID = 1L;
+    private JTextField firstNameField;
+    private JTextField lastNameField;
+    private JTextField phoneNumberField;
+    private JTextField emailField;
+    private JComboBox<String> seatComboBox;
+    private JTextField cardNumberField;
+    private JTextField expiryDateField;
+    private JTextField cvvField;
+    private JLabel priceLabel;
+    private GUI parentGUI;
+
+    public DetailsFrame(Flight selectedFlight, GUI parentGUI) {
+        this.parentGUI = parentGUI;
+        setLayout(new GridLayout(11, 2));
+        setSize(500, 500);
+
+        firstNameField = new JTextField(20);
+        lastNameField = new JTextField(20);
+        phoneNumberField = new JTextField(20);
+        emailField = new JTextField(20);
+
+        String[] seatOptions = {"Select A Seat","Window", "Middle", "Aisle"};
+        seatComboBox = new JComboBox<>(seatOptions);
+
+        cardNumberField = new JTextField(20);
+        expiryDateField = new JTextField(20);
+        cvvField = new JTextField(3);
+
+        priceLabel = new JLabel("Flight Price: " + selectedFlight.getPrice());
+        add(new JLabel("Price:"));
+        add(priceLabel);
+
+        JButton submitButton = new JButton("Submit");
+        submitButton.addActionListener(e -> handleSubmit(selectedFlight));
+        
+        add(new JLabel("First Name:"));
+        add(firstNameField);
+        add(new JLabel("Last Name:"));
+        add(lastNameField);
+        add(new JLabel("Phone Number:"));
+        add(phoneNumberField);
+        add(new JLabel("Email:"));
+        add(emailField);
+        add(new JLabel("Seat Type:"));
+        add(seatComboBox);
+        add(new JLabel("Card Number:"));
+        add(cardNumberField);
+        add(new JLabel("Expiry Date:"));
+        add(expiryDateField);
+        add(new JLabel("CVV:"));
+        add(cvvField);
+        add(submitButton);
+
+    }
+
+    private void handleSubmit(Flight selectedFlight) {
+        String firstName = firstNameField.getText();
+        String lastName = lastNameField.getText();
+        String phoneNumber = phoneNumberField.getText();
+        String email = emailField.getText();
+        String seatType = (String) seatComboBox.getSelectedItem();
+
+        Passenger passenger = new Passenger(firstName, lastName, phoneNumber, email, seatType, selectedFlight);
+        parentGUI.bookFlight(selectedFlight, passenger);
+
+        JOptionPane.showMessageDialog(this, "Your Reservation Is Complete! \n" + passenger);
+        this.dispose();
+    }
+}
+
+public class GUI {
+    ArrayList<Flight> flights;
+    ArrayList<BookedFlight> bookedFlights;
+
+    public static void main(String[] args) {
+        new GUI().startFlightSelection();
+    }
+
+    public void startFlightSelection() {
+        flights = new ArrayList<>();
+        bookedFlights = new ArrayList<>();
+
+        flights.add(new Flight("San Francisco", "08:00", "2023-08-01", 350.00, "SFO International", "747"));
+        flights.add(new Flight("Los Angeles", "10:00", "2023-08-02", 195.00, "LAX International", "737"));
+        flights.add(new Flight("New York", "07:00", "2023-08-02", 400.00, "JFK International", "757"));
+        flights.add(new Flight("Chicago", "12:00", "2023-08-03", 300.00, "ORD International", "777"));
+        flights.add(new Flight("Miami", "10:30", "2023-08-04", 250.00, "MIA International", "787"));
+        flights.add(new Flight("Dallas", "09:00", "2023-08-05", 280.00, "DFW International", "747"));
+        flights.add(new Flight("Atlanta", "11:00", "2023-08-06", 270.00, "ATL International", "767"));
+        flights.add(new Flight("Seattle", "13:00", "2023-08-07", 350.00, "SEA International", "737"));
+        flights.add(new Flight("Denver", "14:00", "2023-08-08", 320.00, "DEN International", "757"));
+        flights.add(new Flight("Boston", "08:30", "2023-08-09", 380.00, "BOS International", "777"));
+
+        JFrame flightPage = new JFrame("Flight Page");
+        flightPage.setSize(1000, 250);
+        flightPage.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JList<Flight> flightList = new JList<>(flights.toArray(new Flight[0]));
+
+        flightList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    Flight selectedFlight = flightList.getSelectedValue();
+                    new DetailsFrame(selectedFlight, GUI.this).setVisible(true);
+                }
+            }
+        });
+        flightPage.add(new JScrollPane(flightList));
+        flightPage.setVisible(true);
+    }
+
+    public void bookFlight(Flight flight, Passenger passenger) {
+        bookedFlights.add(new BookedFlight(flight, passenger));
+    }
+
+    public void printBookedFlights() {
+        for (BookedFlight bookedFlight : bookedFlights) {
+            System.out.println(bookedFlight);
+        }   
+    }
+    
+    public void saveBookedFlightsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("booked_flights.txt"))) {
+            for (BookedFlight bookedFlight : bookedFlights) {
+                writer.write(bookedFlight.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
